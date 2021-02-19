@@ -5,5 +5,8 @@
   "license": "MIT",
   "devDependencies": {
     "typescript": "^4.1.5"
+  },
+  "scripts": {
+    "watch": "tsc -w"
   }
 }
