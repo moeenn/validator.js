@@ -1,4 +1,4 @@
-import validate from '../dist/validator.js';
+import validate from '../dist/validator.min.js';
 
 const form = document.querySelector('#sample_form');
 
