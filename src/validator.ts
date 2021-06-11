@@ -1,153 +1,168 @@
-import { ValidationDetail } from "./types";
+/**
+ *  data types i.e. interfaces
+ *
+ */
+interface ValidationHandlerArgs {
+  input: string;
+  validator_value?: string | number;
+}
 
-export default class Validator {
-  private _form_element: HTMLElement;
-  private _fields: NodeListOf<HTMLInputElement>;
-  private _validations: Map<String, ValidationDetail> = new Map([
-    [
-      "required",
-      {
-        error: "Please fill out this field",
-        handler: this.validate_required,
-      },
-    ],
-    [
-      "alpha",
-      {
-        error: "Please enter alphabets and numbers only",
-        handler: this.validate_alpha,
-      },
-    ],
-  ]);
+interface ValidationDetail {
+  error: string;
+  handler(details: ValidationHandlerArgs): boolean;
+}
 
-  public constructor(element: HTMLElement) {
-    this._form_element = element;
-    this._fields = this.get_input_fields();
+/**
+ *  registered validators
+ *
+ */
+const validations: Map<String, ValidationDetail> = new Map([
+  [
+    "required",
+    {
+      error: "Please fill out this field",
+      handler: validate__required,
+    },
+  ],
+  [
+    "alpha",
+    {
+      error: "Please enter alphabets and numbers only",
+      handler: validate__alpha,
+    },
+  ],
+]);
+
+/**
+ *  get all input fields from the provided form
+ *
+ */
+function get_form_fields(form: HTMLElement): Array<HTMLInputElement> {
+  const inputs: NodeListOf<HTMLInputElement> =
+    form.querySelectorAll<HTMLInputElement>("input:not(input[type='submit'])");
+
+  if (!inputs)
+    throw new Error("Provided form does not have any valid input fields");
+
+  return [...inputs];
+}
+
+/**
+ *  clear all previous errors in the form
+ *
+ */
+function clear_previous_errors(form: HTMLElement): void {
+  const errors: NodeListOf<HTMLElement> =
+    form.querySelectorAll<HTMLElement>("[data-validator]");
+
+  errors.forEach((error: HTMLElement) => error.remove());
+}
+
+/**
+ *  create element containing error message for insertion into DOM
+ *
+ */
+function create_error_element(validation_name: string): HTMLElement {
+  const error: HTMLElement = document.createElement("p");
+
+  error.dataset.validator = validation_name;
+  error.classList.add("error");
+
+  const validation: ValidationDetail | undefined =
+    validations.get(validation_name);
+
+  if (validation) {
+    error.innerText = validation.error;
   }
 
-  /**
-   *  get all fields in form except submit button
-   *
-   */
-  private get_input_fields(): NodeListOf<HTMLInputElement> {
-    return this._form_element.querySelectorAll<HTMLInputElement>(
-      "input:not([type='submit'])"
-    );
-  }
+  return error;
+}
 
-  public validate(): void {
-    this._form_element.addEventListener("submit", (e: Event) => {
-      e.preventDefault();
-      this._fields = this.get_input_fields();
+/**
+ *  check if a particular error is already being shown on a field
+ *
+ */
+function contains_error(parent: HTMLElement, validation_name: string): boolean {
+  const current_errors: NodeListOf<HTMLElement> | undefined =
+    parent.querySelectorAll<HTMLElement>(".error");
 
-      this._fields.forEach(field => {
-        const applied_validators: DOMStringMap = field.dataset;
-        const value: string = field.value;
-  
-        for (const validator in applied_validators) {
-          const know_validator:
-            | ValidationDetail
-            | undefined = this._validations.get(validator);
-          if (know_validator) {
-            const is_valid = know_validator.handler(value);
-            console.log(validator, is_valid);
-            if (!is_valid) {
-              this.show_error(field, validator);
-            } else {
-              this.remove_error(field);
-            }
-          }
-        }
-      });
+  if (current_errors.length === 0) return false;
 
-      console.log("Form Validated!");
-    });
-  }
+  return (
+    [...current_errors].findIndex((error: HTMLElement) => {
+      return error.dataset.validation_name === validation_name;
+    }) !== -1
+  );
+}
 
-  /**
-   *  create element containing error message for insertion into DOM
-   *
-   */
-  private create_error_element(validation_name: String): HTMLElement {
-    const error: HTMLElement = document.createElement("p");
-    error.classList.add("error");
+/**
+ *  show / hide validation errors from DOM
+ *
+ */
+function show_error(field: HTMLInputElement, validation_name: string): void {
+  console.log("showing error :", validation_name);
 
-    const validation: ValidationDetail | undefined = this._validations.get(
-      validation_name
-    );
+  const error: HTMLElement = create_error_element(validation_name);
+  const parent: HTMLElement | null = field.parentElement;
 
-    if (validation) {
-      error.innerText = validation.error;
+  if (parent) {
+    if (!contains_error(parent, validation_name)) {
+      parent.appendChild(error);
     }
-
-    return error;
   }
+}
 
-  /**
-   *  show / hide validation errors from DOM
-   *
-   */
-  private show_error(field: HTMLInputElement, validation_name: String): void {
-    const error: HTMLElement = this.create_error_element(validation_name);
-    const parent: HTMLElement | null = field.parentElement;
+/**
+ *  validation handler functions
+ *
+ */
+function validate__required(data: ValidationHandlerArgs): boolean {
+  if (data.input.trim().length === 0) return false;
+  return true;
+}
 
-    if (parent) {
-      if (!this.contains_error(parent, error)) {
-        /**
-         *  for some reason parent.appendChild(error)
-         *  isn't working
-        */
-        const error_html: string = error.outerHTML;
-        parent.innerHTML += error_html;
+function validate__alpha(data: ValidationHandlerArgs): boolean {
+  const regexp = new RegExp("^[0-9A-Za-z]*$");
+  return regexp.test(data.input);
+}
+
+/**
+ *  entrypoint to the module
+ *
+ */
+export default function validate(form: HTMLElement): boolean {
+  const inputs: Array<HTMLInputElement> = get_form_fields(form);
+
+  clear_previous_errors(form);
+  const results: Array<boolean> = [];
+
+  inputs.forEach((field) => {
+    const applied_validators: DOMStringMap = field.dataset;
+    const field_value: string = field.value;
+
+    for (const [validator, value] of Object.entries(applied_validators)) {
+      const known_validator: ValidationDetail | undefined =
+        validations.get(validator);
+
+      if (!known_validator) {
+        console.warn(`Unrecognized validator: ${validator}`);
+        results.push(false);
       }
-    }
-  }
 
-  /**
-   *  check if a particular error is already being shown on a field
-   *
-   */
-  private contains_error(parent: HTMLElement, element: HTMLElement): boolean {
-    const current_errors:
-      | NodeListOf<HTMLElement>
-      | undefined = parent.querySelectorAll<HTMLElement>(".error");
-    let flag: boolean = false;
-
-    if (current_errors.length === 0) flag = false;
-
-    current_errors.forEach((error) => {
-      if (error.isEqualNode(element)) flag = true;
-    });
-
-    return flag;
-  }
-
-  private remove_error(field: HTMLInputElement): void {
-    const parent = field.parentElement;
-    if (parent) {
-      const error_msgs: NodeListOf<HTMLElement> | null = parent.querySelectorAll<HTMLElement>(
-        ".error"
-      );
-
-      if (error_msgs) {
-        error_msgs.forEach((msg) => {
-          msg.remove();
+      if (known_validator) {
+        const is_valid = known_validator.handler({
+          input: field_value,
+          validator_value: value,
         });
+
+        results.push(is_valid);
+
+        if (!is_valid) {
+          show_error(field, validator);
+        }
       }
     }
-  }
+  });
 
-  /**
-   *  validation handler functions
-   *
-   */
-  private validate_required(input: string): boolean {
-    if (input.trim().length === 0) return false;
-    return true;
-  }
-
-  private validate_alpha(value: string): boolean {
-    const regexp = new RegExp("^[0-9A-Za-z]*$");
-    return regexp.test(value);
-  }
+  return results.every((result) => result);
 }
