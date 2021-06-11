@@ -19,12 +19,12 @@
 
         <fieldset>
           <label for="password">Password</label>
-          <input for="password" type="password" data-required />
+          <input for="password" type="password" data-required data-minlength="5" />
         </fieldset>
 
         <fieldset>
           <label for="conf_password">Confirm Password</label>
-          <input for="conf_password" type="password" data-required />
+          <input for="conf_password" type="password" data-required data-same="password" />
         </fieldset>
 
         <input type="submit" value="Submit" />

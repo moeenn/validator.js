@@ -4,33 +4,27 @@
  */
 interface ValidationHandlerArgs {
   input: string;
-  validator_value?: string | number;
+  validator_value?: string;
 }
 
-interface ValidationDetail {
-  error: string;
-  handler(details: ValidationHandlerArgs): boolean;
+type ValidationHandler = (
+  details: ValidationHandlerArgs
+) => ValidationHandlerResult;
+
+interface ValidationHandlerResult {
+  is_valid: boolean;
+  message?: string;
 }
 
 /**
  *  registered validators
  *
  */
-const validations: Map<String, ValidationDetail> = new Map([
-  [
-    "required",
-    {
-      error: "Please fill out this field",
-      handler: validate__required,
-    },
-  ],
-  [
-    "alpha",
-    {
-      error: "Please enter alphabets and numbers only",
-      handler: validate__alpha,
-    },
-  ],
+const validations: Map<String, ValidationHandler> = new Map([
+  ["required", validate__required],
+  ["alpha", validate__alpha],
+  ["minlength", validate__minlength],
+  ["same", validate__same],
 ]);
 
 /**
@@ -62,17 +56,20 @@ function clear_previous_errors(form: HTMLElement): void {
  *  create element containing error message for insertion into DOM
  *
  */
-function create_error_element(validation_name: string): HTMLElement {
+function create_error_element(
+  validation_name: string,
+  error_message: string
+): HTMLElement {
   const error: HTMLElement = document.createElement("p");
 
   error.dataset.validator = validation_name;
   error.classList.add("error");
 
-  const validation: ValidationDetail | undefined =
+  const handler: ValidationHandler | undefined =
     validations.get(validation_name);
 
-  if (validation) {
-    error.innerText = validation.error;
+  if (handler) {
+    error.innerText = error_message;
   }
 
   return error;
@@ -99,10 +96,15 @@ function contains_error(parent: HTMLElement, validation_name: string): boolean {
  *  show / hide validation errors from DOM
  *
  */
-function show_error(field: HTMLInputElement, validation_name: string): void {
-  console.log("showing error :", validation_name);
-
-  const error: HTMLElement = create_error_element(validation_name);
+function show_error(
+  field: HTMLInputElement,
+  validation_name: string,
+  error_message: string
+): void {
+  const error: HTMLElement = create_error_element(
+    validation_name,
+    error_message
+  );
   const parent: HTMLElement | null = field.parentElement;
 
   if (parent) {
@@ -116,14 +118,57 @@ function show_error(field: HTMLInputElement, validation_name: string): void {
  *  validation handler functions
  *
  */
-function validate__required(data: ValidationHandlerArgs): boolean {
-  if (data.input.trim().length === 0) return false;
-  return true;
+function validate__required(
+  data: ValidationHandlerArgs
+): ValidationHandlerResult {
+  if (data.input.trim().length === 0)
+    return { is_valid: false, message: "Please fill out this field" };
+
+  return { is_valid: true };
 }
 
-function validate__alpha(data: ValidationHandlerArgs): boolean {
+function validate__alpha(data: ValidationHandlerArgs): ValidationHandlerResult {
   const regexp = new RegExp("^[0-9A-Za-z]*$");
-  return regexp.test(data.input);
+  const is_valid: boolean = regexp.test(data.input);
+
+  if (!is_valid)
+    return { is_valid, message: "Please enter alphabets or numbers only" };
+
+  return { is_valid };
+}
+
+function validate__minlength(
+  data: ValidationHandlerArgs
+): ValidationHandlerResult {
+  if (!data.validator_value)
+    throw new Error("No value provided for data-minlength validator");
+  const is_valid: boolean = data.input.length >= parseInt(data.validator_value);
+
+  if (!is_valid)
+    return {
+      is_valid,
+      message: `Please enter atleast ${data.validator_value} characters`,
+    };
+  return { is_valid };
+}
+
+function validate__same(data: ValidationHandlerArgs): ValidationHandlerResult {
+  const target_selector: string = `form input[for='${data.validator_value}']`;
+  const target_input: HTMLInputElement | null =
+    document.querySelector<HTMLInputElement>(target_selector);
+
+  if (!target_input)
+    throw new Error(
+      `Target element with selector ${target_selector} not found`
+    );
+
+  if (target_input.value !== data.input)
+    return {
+      is_valid: false,
+      message: `Input value does not match target ${data.validator_value} field`,
+    };
+
+  return { is_valid: true };
 }
 
 /**
@@ -141,7 +186,7 @@ export default function validate(form: HTMLElement): boolean {
     const field_value: string = field.value;
 
     for (const [validator, value] of Object.entries(applied_validators)) {
-      const known_validator: ValidationDetail | undefined =
+      const known_validator: ValidationHandler | undefined =
         validations.get(validator);
 
       if (!known_validator) {
@@ -150,15 +195,15 @@ export default function validate(form: HTMLElement): boolean {
       }
 
       if (known_validator) {
-        const is_valid = known_validator.handler({
+        const result: ValidationHandlerResult = known_validator({
           input: field_value,
           validator_value: value,
         });
 
-        results.push(is_valid);
+        results.push(result.is_valid);
 
-        if (!is_valid) {
-          show_error(field, validator);
+        if (!result.is_valid && result.message) {
+          show_error(field, validator, result.message);
         }
       }
     }
