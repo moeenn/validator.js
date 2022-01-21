@@ -1,12 +1,18 @@
+import validators from "./validators";
 /**
  *  registered validators
  *
  */
 const validations = new Map([
-    ["required", validate__required],
-    ["alpha", validate__alpha],
-    ["minlength", validate__minlength],
-    ["same", validate__same],
+    ["required", validators.required],
+    ["aplha", validators.alpha],
+    ["num", validators.num],
+    ["alphanumeric", validators.alphanumeic],
+    ["minlength", validators.minlength],
+    ["maxlength", validators.maxlength],
+    ["min", validators.min],
+    ["max", validators.max],
+    ["same", validators.same],
 ]);
 /**
  *  get all input fields from the provided form
@@ -64,45 +70,6 @@ function show_error(field, validation_name, error_message) {
             parent.appendChild(error);
         }
     }
-}
-/**
- *  validation handler functions
- *
- */
-function validate__required(data) {
-    if (data.input.trim().length === 0)
-        return { is_valid: false, message: "Please fill out this field" };
-    return { is_valid: true };
-}
-function validate__alpha(data) {
-    const regexp = new RegExp("^[0-9A-Za-z]*$");
-    const is_valid = regexp.test(data.input);
-    if (!is_valid)
-        return { is_valid, message: "Please enter alphabets or numbers only" };
-    return { is_valid };
-}
-function validate__minlength(data) {
-    if (!data.validator_value)
-        throw new Error("No value provided for data-minlength validator");
-    const is_valid = data.input.length >= parseInt(data.validator_value);
-    if (!is_valid)
-        return {
-            is_valid,
-            message: `Please enter atleast ${data.validator_value} characters`,
-        };
-    return { is_valid };
-}
-function validate__same(data) {
-    const target_selector = `form input[for='${data.validator_value}']`;
-    const target_input = document.querySelector(target_selector);
-    if (!target_input)
-        throw new Error(`Target element with selector ${target_selector} not found`);
-    if (target_input.value !== data.input)
-        return {
-            is_valid: false,
-            message: `Input value does not match target ${data.validator_value} field`,
-        };
-    return { is_valid: true };
 }
 /**
  *  entrypoint to the module

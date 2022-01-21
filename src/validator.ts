@@ -1,30 +1,20 @@
-/**
- *  data types i.e. interfaces
- *
- */
-interface ValidationHandlerArgs {
-  input: string;
-  validator_value?: string;
-}
-
-type ValidationHandler = (
-  details: ValidationHandlerArgs
-) => ValidationHandlerResult;
-
-interface ValidationHandlerResult {
-  is_valid: boolean;
-  message?: string;
-}
+import { ValidationHandlerArgs, ValidationHandler, ValidationHandlerResult} from "./types";
+import validators from "./validators";
 
 /**
  *  registered validators
  *
  */
 const validations: Map<String, ValidationHandler> = new Map([
-  ["required", validate__required],
-  ["alpha", validate__alpha],
-  ["minlength", validate__minlength],
-  ["same", validate__same],
+  ["required", validators.required],
+  ["aplha", validators.alpha],
+  ["num", validators.num],
+  ["alphanumeric", validators.alphanumeic],
+  ["minlength", validators.minlength],
+  ["maxlength", validators.maxlength],
+  ["min", validators.min],
+  ["max", validators.max],
+  ["same", validators.same],
 ]);
 
 /**
@@ -114,62 +104,6 @@ function show_error(
   }
 }
 
-/**
- *  validation handler functions
- *
- */
-function validate__required(
-  data: ValidationHandlerArgs
-): ValidationHandlerResult {
-  if (data.input.trim().length === 0)
-    return { is_valid: false, message: "Please fill out this field" };
-
-  return { is_valid: true };
-}
-
-function validate__alpha(data: ValidationHandlerArgs): ValidationHandlerResult {
-  const regexp = new RegExp("^[0-9A-Za-z]*$");
-  const is_valid: boolean = regexp.test(data.input);
-
-  if (!is_valid)
-    return { is_valid, message: "Please enter alphabets or numbers only" };
-
-  return { is_valid };
-}
-
-function validate__minlength(
-  data: ValidationHandlerArgs
-): ValidationHandlerResult {
-  if (!data.validator_value)
-    throw new Error("No value provided for data-minlength validator");
-  const is_valid: boolean = data.input.length >= parseInt(data.validator_value);
-
-  if (!is_valid)
-    return {
-      is_valid,
-      message: `Please enter atleast ${data.validator_value} characters`,
-    };
-  return { is_valid };
-}
-
-function validate__same(data: ValidationHandlerArgs): ValidationHandlerResult {
-  const target_selector: string = `form input[for='${data.validator_value}']`;
-  const target_input: HTMLInputElement | null =
-    document.querySelector<HTMLInputElement>(target_selector);
-
-  if (!target_input)
-    throw new Error(
-      `Target element with selector ${target_selector} not found`
-    );
-
-  if (target_input.value !== data.input)
-    return {
-      is_valid: false,
-      message: `Input value does not match target ${data.validator_value} field`,
-    };
-
-  return { is_valid: true };
-}
 
 /**
  *  entrypoint to the module

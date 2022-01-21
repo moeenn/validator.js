@@ -1,0 +1,5 @@
+fieldset p.error {
+  margin-bottom: auto;
+  font-size: calc(var(--font-size) * 0.85);
+  color: hsl(0deg, 100%, 35%);
+}

@@ -2,7 +2,12 @@
 # yarn lockfile v1
 
 
-typescript@^4.1.5:
-  version "4.1.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.1.5.tgz#123a3b214aaff3be32926f0d8f1f6e704eb89a72"
-  integrity sha512-6OSu9PTIzmn9TCDiovULTnET6BgXtDYL4Gg4szY+cGsc3JP1dQL8qvE8kShTRx1NIw4Q9IBHlwODjkjWEtMUyA==
+"typescript@^4.1.5":
+  "integrity" "sha512-6OSu9PTIzmn9TCDiovULTnET6BgXtDYL4Gg4szY+cGsc3JP1dQL8qvE8kShTRx1NIw4Q9IBHlwODjkjWEtMUyA=="
+  "resolved" "https://registry.npmjs.org/typescript/-/typescript-4.1.5.tgz"
+  "version" "4.1.5"
+
+"uglify-js@^3.13.9":
+  "integrity" "sha512-wZbyTQ1w6Y7fHdt8sJnHfSIuWeDgk6B5rCb4E/AM6QNNPbOMIZph21PW5dRB3h7Df0GszN+t7RuUH6sWK5bF0g=="
+  "resolved" "https://registry.npmjs.org/uglify-js/-/uglify-js-3.13.9.tgz"
+  "version" "3.13.9"

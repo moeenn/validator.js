@@ -1,10 +1,11 @@
-import validate from '../dist/validator.min.js';
+import validate from '../dist/validator.js'
 
-const form = document.querySelector('#sample_form');
+const forms = document.querySelectorAll('form[data-validate]')
+forms.forEach(form => {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault()
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const is_valid = validate(e.target);  
-  console.log("Is Form Valid?", is_valid);
+    const is_valid = validate(e.target)
+    console.log("Form valid?", is_valid)
+  })
 })

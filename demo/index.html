@@ -4,36 +4,40 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="./styles/style.css">
+  <link rel="stylesheet" href="./styles/wireframe.css">
+  <link rel="stylesheet" href="./styles/styles.css">
   <script async src="index.js" type="module"></script>
+
+  <title>Validator Demo</title>
 </head>
 <body>
   <section>
     <div class="container">
-      <form id="sample_form">
-        <fieldset>
+      <form data-validate>
+        <fieldset class="my-1">
           <label for="name">Name</label>
-          <input for="name" type="text" data-required data-alpha />
+          <input for="name" type="text" data-required data-alpha data-maxlength="5" />
         </fieldset>
 
-        <fieldset>
+        <fieldset class="my-1">
+          <label for="xp">Years of Experience</label>
+          <input for="xp" type="text" data-required data-num data-min="5" data-max="10" />          
+        </fieldset>
+
+        <fieldset class="my-1">
           <label for="password">Password</label>
           <input for="password" type="password" data-required data-minlength="5" />
         </fieldset>
 
-        <fieldset>
+        <fieldset class="my-1">
           <label for="conf_password">Confirm Password</label>
           <input for="conf_password" type="password" data-required data-same="password" />
         </fieldset>
 
-        <input type="submit" value="Submit" />
+        <input type="submit" class="primary shadow-sm" value="submit" />
       </form>
     </div>
   </section>
 
-  <script>
-
-  </script>
 </body>
 </html>

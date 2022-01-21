@@ -9,6 +9,7 @@
   },
   "scripts": {
     "watch": "tsc -w",
+    "bundle": "echo 'TODO'",
     "minify": "./node_modules/.bin/uglifyjs dist/validator.js --compress --mangle >> dist/validator.min.js"
   }
 }
