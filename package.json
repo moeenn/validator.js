@@ -1,15 +1,19 @@
 {
-  "name": "js-validator",
+  "name": "setup",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "license": "MIT",
-  "devDependencies": {
-    "typescript": "^4.1.5",
-    "uglify-js": "^3.13.9"
-  },
   "scripts": {
-    "watch": "tsc -w",
-    "bundle": "echo 'TODO'",
-    "minify": "./node_modules/.bin/uglifyjs dist/validator.js --compress --mangle >> dist/validator.min.js"
+    "build": "tsc && rollup -c rollup.config.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "rollup": "^2.66.0",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "@rollup/plugin-typescript": "^8.3.0"
   }
 }

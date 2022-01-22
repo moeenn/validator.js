@@ -1,4 +1,4 @@
-import validate from '../dist/validator.js'
+import { validate } from '../dist/index.js'
 
 const forms = document.querySelectorAll('form[data-validate]')
 forms.forEach(form => {
