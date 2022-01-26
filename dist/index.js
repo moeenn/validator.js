@@ -15,8 +15,7 @@ function alpha(data) {
     return { is_valid };
 }
 function num(data) {
-    const regexp = new RegExp("^[0-9]+.[0-9]+$");
-    const is_valid = regexp.test(data.input);
+    const is_valid = !isNaN(data.input);
     if (!is_valid)
         return { is_valid, message: "Please enter numbers only" };
     return { is_valid };
@@ -101,15 +100,15 @@ var validators = {
  *
  */
 const validations = new Map([
-    ["required", validators.required],
-    ["aplha", validators.alpha],
-    ["num", validators.num],
-    ["alphanumeric", validators.alphanumeic],
-    ["minlength", validators.minlength],
-    ["maxlength", validators.maxlength],
-    ["min", validators.min],
-    ["max", validators.max],
-    ["same", validators.same],
+    ["required", { handler: validators.required, priority: 0 }],
+    ["alpha", { handler: validators.alpha, priority: 1 }],
+    ["num", { handler: validators.num, priority: 1 }],
+    ["alphanumeric", { handler: validators.alphanumeic, priority: 1 }],
+    ["minlength", { handler: validators.minlength, priority: 2 }],
+    ["maxlength", { handler: validators.maxlength, priority: 2 }],
+    ["min", { handler: validators.min, priority: 2 }],
+    ["max", { handler: validators.max, priority: 2 }],
+    ["same", { handler: validators.same, priority: 1 }],
 ]);
 /**
  *  get all input fields from the provided form
@@ -137,8 +136,8 @@ function create_error_element(validation_name, error_message) {
     const error = document.createElement("p");
     error.dataset.validator = validation_name;
     error.classList.add("error");
-    const handler = validations.get(validation_name);
-    if (handler) {
+    const validator = validations.get(validation_name);
+    if (validator) {
         error.innerText = error_message;
     }
     return error;
@@ -176,7 +175,7 @@ function validate(form) {
     const inputs = get_form_fields(form);
     clear_previous_errors(form);
     const results = [];
-    inputs.forEach((field) => {
+    for (const field of inputs) {
         const applied_validators = field.dataset;
         const field_value = field.value;
         for (const [validator, value] of Object.entries(applied_validators)) {
@@ -186,7 +185,7 @@ function validate(form) {
                 results.push(false);
             }
             if (known_validator) {
-                const result = known_validator({
+                const result = known_validator.handler({
                     input: field_value,
                     validator_value: value,
                 });
@@ -196,7 +195,7 @@ function validate(form) {
                 }
             }
         }
-    });
+    }
     return results.every((result) => result);
 }
 

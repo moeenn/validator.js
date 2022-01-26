@@ -35,7 +35,6 @@ See the Demo folder for a full example.
 
 
 ## TODO
-- [ ] Implement a bundler (e.g. rollup)
 - [ ] Update minification script to minify the bundle (i.e. all output .js files)
 - [ ] When value is read from the form, its value should be trimmed
-- [ ] If a required field is not filled out, don't run any other validators on it
+- [ ] Implement validation hierarchy e.g. If a required field is not filled out, don't run any other validators on it

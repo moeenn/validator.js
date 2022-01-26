@@ -15,3 +15,8 @@ export interface ValidationHandlerResult {
   is_valid: boolean;
   message?: string;
 }
+
+export interface KnownValidator {
+  handler: ValidationHandler,
+  priority: number,
+}

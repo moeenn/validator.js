@@ -24,8 +24,7 @@ function alpha(data: ValidationHandlerArgs): ValidationHandlerResult {
 }
 
 function num(data: ValidationHandlerArgs): ValidationHandlerResult {
-  const regexp = new RegExp("^[0-9]+.[0-9]+$");
-  const is_valid: boolean = regexp.test(data.input);
+  const is_valid: boolean = !isNaN(data.input as any);
 
   if (!is_valid)
     return { is_valid, message: "Please enter numbers only" };

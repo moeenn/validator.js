@@ -1,20 +1,20 @@
-import { ValidationHandlerArgs, ValidationHandler, ValidationHandlerResult} from "./types";
+import { ValidationHandler, ValidationHandlerResult, KnownValidator } from "./types";
 import validators from "./validators";
 
 /**
  *  registered validators
  *
  */
-const validations: Map<String, ValidationHandler> = new Map([
-  ["required", validators.required],
-  ["aplha", validators.alpha],
-  ["num", validators.num],
-  ["alphanumeric", validators.alphanumeic],
-  ["minlength", validators.minlength],
-  ["maxlength", validators.maxlength],
-  ["min", validators.min],
-  ["max", validators.max],
-  ["same", validators.same],
+const validations: Map<String, KnownValidator> = new Map([
+  ["required", { handler: validators.required, priority: 0 }],
+  ["alpha", { handler: validators.alpha, priority: 1 }],
+  ["num", { handler: validators.num, priority: 1 }],
+  ["alphanumeric", { handler: validators.alphanumeic, priority: 1 }],
+  ["minlength", { handler: validators.minlength, priority: 2 }],
+  ["maxlength", { handler: validators.maxlength, priority: 2 }],
+  ["min", { handler: validators.min, priority: 2 }],
+  ["max", { handler: validators.max, priority: 2 }],
+  ["same", { handler: validators.same, priority: 1 }],
 ]);
 
 /**
@@ -55,10 +55,10 @@ function create_error_element(
   error.dataset.validator = validation_name;
   error.classList.add("error");
 
-  const handler: ValidationHandler | undefined =
+  const validator: KnownValidator | undefined =
     validations.get(validation_name);
 
-  if (handler) {
+  if (validator) {
     error.innerText = error_message;
   }
 
@@ -115,12 +115,12 @@ export default function validate(form: HTMLElement): boolean {
   clear_previous_errors(form);
   const results: Array<boolean> = [];
 
-  inputs.forEach((field) => {
+  for (const field of inputs) {
     const applied_validators: DOMStringMap = field.dataset;
     const field_value: string = field.value;
 
     for (const [validator, value] of Object.entries(applied_validators)) {
-      const known_validator: ValidationHandler | undefined =
+      const known_validator: KnownValidator | undefined =
         validations.get(validator);
 
       if (!known_validator) {
@@ -129,7 +129,7 @@ export default function validate(form: HTMLElement): boolean {
       }
 
       if (known_validator) {
-        const result: ValidationHandlerResult = known_validator({
+        const result: ValidationHandlerResult = known_validator.handler({
           input: field_value,
           validator_value: value,
         });
@@ -141,7 +141,7 @@ export default function validate(form: HTMLElement): boolean {
         }
       }
     }
-  });
+  }
 
   return results.every((result) => result);
 }
