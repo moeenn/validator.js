@@ -178,25 +178,45 @@ function validate(form) {
     for (const field of inputs) {
         const applied_validators = field.dataset;
         const field_value = field.value;
+        /**
+         *  fetch all know validators
+         *
+         */
+        let known_validators = [];
         for (const [validator, value] of Object.entries(applied_validators)) {
             const known_validator = validations.get(validator);
             if (!known_validator) {
                 console.warn(`Unrecognized validator: ${validator}`);
                 results.push(false);
+                continue;
             }
-            if (known_validator) {
-                const result = known_validator.handler({
-                    input: field_value,
-                    validator_value: value,
-                });
-                results.push(result.is_valid);
-                if (!result.is_valid && result.message) {
-                    show_error(field, validator, result.message);
-                }
+            known_validators.push({ handler: known_validator, validator, value });
+        }
+        /**
+         *  known validators need to be sorted by priority
+         *  if a validator with higher priority fails, we will not run other
+         *  validators of lower priority
+        */
+        known_validators = known_validators.sort((a, b) => {
+            return a.handler.priority - b.handler.priority;
+        });
+        /**
+         *  run the actual validations
+         *
+        */
+        for (const { validator, handler, value } of known_validators) {
+            const result = handler.handler({
+                input: field_value,
+                validator_value: value,
+            });
+            results.push(result.is_valid);
+            if (!result.is_valid && result.message) {
+                show_error(field, validator, result.message);
+                break;
             }
         }
     }
-    return results.every((result) => result);
+    return results.every(result => result);
 }
 
 export { validate };
